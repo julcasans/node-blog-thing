@@ -2,38 +2,6 @@
 html, body {
     margin: 0;
     height: 100%;
-    background-color: #222222;
-}
-
-.CodeMirror {
-    display: block;    
-    font-size: 16px;
-    color: rgb(248, 248, 248);
-    background-color: rgb(20, 20, 20);
-    line-height: 1.5em;
-}
-
-.CodeMirror, #save {
-    font-family: 'Monaco','Menlo','Ubuntu Mono','Droid Sans Mono','Consolas',monospace;
-}
-
-.CodeMirror-scroll {
-    height: auto;
-    overflow: visible;
-}
-
-.CodeMirror-lines pre.CodeMirror-cursor {
-    border-left: 1px solid rgb(248, 248, 248);
-    height: 1.1em;
-}
-
-span.cm-header {
-    color: rgb(207, 106, 76);
-    font-weight: normal;
-}
-
-span.cm-comment, span.cm-string {
-    color: rgb(218, 208, 133);
 }
 
 #app {
@@ -42,10 +10,23 @@ span.cm-comment, span.cm-string {
 }
 
 #editor, #preview {
+    position: absolute;
     width: 50%;
     height: 100%;
-    float: left;
-    overflow-y: scroll;
+}
+
+#editor {
+    top: 0;
+    left: 0;
+    font-size: 1em;
+    line-height: 1.5em;
+}
+
+#preview {
+    top: 0;
+    left: 50%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #preview {
@@ -68,6 +49,7 @@ span.cm-comment, span.cm-string {
 
 .dialog {
     display: none;
+    z-index: 1000;
 }
 
 .dialog .overlay {

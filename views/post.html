@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+(<a href="/edit/{{ post.shorturl }}">edit</a>)
+
 {{ post.date }}
 {{ post.rendered }}
 {% endblock %}

@@ -1,0 +1,51 @@
+<!DOCTYPE>
+<html>
+  <head>
+    <title>Editing {{ post.title }}</title>
+    <link rel="stylesheet" href="/css/editor.css">
+  </head>
+  <body>
+    <div id="app">
+      <div id="editor">
+        {{ post.content | default('') }}
+      </div>
+      <div id="preview">
+        <div class="contents">
+        </div>
+      </div>
+      <a id="save" href="#"><img src="/img/floppy.png" /></a>
+    </div>
+
+    <div id="save-dialog" class="dialog">
+      <div class="overlay"></div>
+      <div class="contents">
+        <h3>Save</h3>
+        <form action="/new" method="post">
+          <input type="hidden" name="content" value="" />
+
+          <div class="field">
+            <label>Title:</label>
+            <input type="text" name="title" value="{{ post.title | default('') }}" />
+          </div>
+
+          <div class="field">
+            <label>Tags:</label>
+            <input type="text" name="tags" value="{{ post.tags | default('') }}" />
+          </div>
+
+          <div class="field">
+            <input type="checkbox" name="published"
+                   {% if post.published == 'y' %}checked="checked"{% endif %}/>
+            Published
+          </div>
+
+          <button type="submit">Save</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="/js/zepto.min.js"></script>
+    <script src="/js/ace/ace.js"></script>
+    <script src="/js/editor.js"></script>
+  </body>
+</html>

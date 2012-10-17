@@ -2,29 +2,56 @@
 
 {% block content %}
 
-<h4>
-   Hello, welcome to my blog!
-</h4>
+<section class="intro">
+  <h1>Hello</h1>
+
+  <p>
+    My name is James Long. I work
+    at <a href="http://mozilla.org/">Mozilla</a>, doing anything I can
+    to help with <a href="http://www.mozilla.org/en-US/apps/">Open Web
+    Apps</a> like making
+    it <a href="https://github.com/jlongster/mortar/">easy</a> to
+    build an app.
+  </p>
+
+  <p>
+    I'm also interested in Lisp and research various things in my
+    Lisp->Javascript language
+    called <a href="http://github.com/jlongster/outlet">Outlet</a>.
+    Currently, I'm very excited about CPS transformations. I also
+    wrote a <a href="http://github.com/jlongster/dcpu-lisp">static
+    Lisp</a> that compiles to <a href="http://0x10c.com/">DCPU</a>
+    assembly code.
+  </p>
+
+  <p>
+    You can <a href="mailto:jlongster@jlongster.com">email me</a> or
+    find me on <a href="http://twitter.com/jlongster">twitter</a>.
+  </p>
+</section>
 
 <p><a href="/new">New Post</a></p>
 
 <p><a href="/drafts">View Drafts</a></p>
 
-<p>
-  Recent Posts:
-  <ul>
-    {% for post in posts %}
-    <li>
-      <a href="/{{ post.shorturl }}">{{ post.title }}</a>
-      {% if post.date %}, created {{ post.date | formatdate }}{% endif %}
-      {% if post.updatedDate %},
-        edited {{ post.updatedDate | formatdate }}
-      {% endif %}
-      (<a href="/edit/{{ post.shorturl }}">edit</a>)
-    </li>
-    {% endfor %}
-  </ul>
-</p>
+<section class="recent">
+  <h1>Recent Posts</h1>
+
+  {% for post in posts %}
+  <article>
+    <h1><a href="/{{ post.shorturl }}">{{ post.title }}</a></h1>
+    <div class="date">{{ post.date | formatdate }} (updated {{ post.updatedDate }})</div>
+    <div class="abstract">{{ post.content | getParagraphs(4) | ghm }}</div>
+    <p class="more"><a href="/{{ post.shorturl }}">Continue reading...</a></p>
+    <div class="tags">
+      Tags:
+      {% for tag in post.tags %}
+      <a href="/tag/{{ tag }}">{{ tag }}</a>{% if not loop.last %},{% endif %}
+      {% endfor %}
+    </div>
+  </article>
+  {% endfor %}
+</section>
  
 <p>
   Tags: 

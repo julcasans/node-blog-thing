@@ -47,12 +47,19 @@ function getAllPosts(type, cb) {
     });
 }
 
+function getPost(key, cb) {
+    client.hgetall(key, function(err, obj) {
+        obj.tags = (obj.tags && obj.tags.split(',')) || [];
+        cb(obj);
+    });
+}
+
 function getAllPostsByKeys(keys, cb) {
     var posts = [];
 
     if(keys.length) {
-        keys.forEach(function(post) {
-            client.hgetall(post, function(err, obj) {
+        keys.forEach(function(key) {
+            getPost(key, function(obj) {
                 posts.push(obj);
 
                 if(posts.length == keys.length) {
@@ -64,7 +71,6 @@ function getAllPostsByKeys(keys, cb) {
     else {
         cb(posts);
     }
-
 }
 
 function getAllPostsByTag(tag, cb) {
@@ -95,13 +101,46 @@ env.express(app);
 
 env.addFilter('formatdate', formatDate);
 
+env.addFilter('getParagraphs', function(str, num) {
+    // Don't split in the middle of a code block
+    var safeLines =  str.split('```')[0].split('\n');
+    var lines = [];
+    var lastEmpty;
+    var numPars = 0;
+
+    // This is stupidly simple, just count the paragraphs by detecting
+    // empty lines
+    for(var i=0; i<safeLines.length; i++) {
+        var line = safeLines[i];
+        lines.push(line);
+
+        if(line.match(/^\s*$/)) {
+            lastEmpty = true;
+
+            if(numPars > num) {
+                break;
+            }
+        }
+        else if(lastEmpty) {
+            numPars++;
+        }
+    }
+
+    return lines.join('\n');
+});
+
+env.addFilter('ghm', function(str) {
+    return ghm.parse(str);
+});
+
 // Routes
 
 app.get('/', function(req, res) {
     getAllPosts(function(posts) {
         getAllTags(function(tags) {
             res.render('index.html', { posts: posts.slice(0, 5),
-                                       tags: tags});
+                                       tags: tags,
+                                       bodyId: 'home' });
         });
     });
 });
@@ -119,17 +158,17 @@ app.get('/archive', function(req, res) {
 });
 
 app.get('/new', function(req, res) {
-    res.render('new.html');
+    res.render('editor.html');
 });
 
 app.get('/edit/:post', function(req, res) {
-    client.hgetall(dbkey('post', req.params.post), function(err, obj) {
-        res.render('new.html', { post: obj });
+    getPost(dbkey('post', req.params.post), function(obj) {
+        res.render('editor.html', { post: obj });
     });
 });
 
 app.get('/:post', function(req, res, next) {
-    client.hgetall(dbkey('post', req.params.post), function(err, obj) {
+    getPost(dbkey('post', req.params.post), function(obj) {
         if(obj) {
             obj.rendered = ghm.parse(obj.content);
             res.render('post.html', { post: obj,
