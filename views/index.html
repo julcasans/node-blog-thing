@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h4>
+   Hello, welcome to my blog!
+</h4>
+
+<p><a href="/new">New Post</a></p>
+
+<p><a href="/drafts">View Drafts</a></p>
+
+<p>
+  Recent Posts:
+  <ul>
+    {% for post in posts %}
+    <li>
+      <a href="/{{ post.shorturl }}">{{ post.title }}</a>
+      {% if post.date %}, created {{ post.date | formatdate }}{% endif %}
+      {% if post.updatedDate %},
+        edited {{ post.updatedDate | formatdate }}
+      {% endif %}
+      (<a href="/edit/{{ post.shorturl }}">edit</a>)
+    </li>
+    {% endfor %}
+  </ul>
+</p>
+ 
+<p>
+  Tags: 
+  <ul>
+    {% for tag in tags %}
+    <li><a href="/tag/{{ tag }}">{{ tag }}</a></li>
+    {% endfor %}
+  </ul>
+</p>
+
+<p>
+  Archive: <a href="/archive">View all posts</a>
+</p>
+
+{% endblock %}

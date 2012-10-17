@@ -1,0 +1,118 @@
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background-color: #222222;
+}
+
+.CodeMirror {
+    display: block;    
+    font-size: 16px;
+    color: rgb(248, 248, 248);
+    background-color: rgb(20, 20, 20);
+    line-height: 1.5em;
+}
+
+.CodeMirror, #save {
+    font-family: 'Monaco','Menlo','Ubuntu Mono','Droid Sans Mono','Consolas',monospace;
+}
+
+.CodeMirror-scroll {
+    height: auto;
+    overflow: visible;
+}
+
+.CodeMirror-lines pre.CodeMirror-cursor {
+    border-left: 1px solid rgb(248, 248, 248);
+    height: 1.1em;
+}
+
+span.cm-header {
+    color: rgb(207, 106, 76);
+    font-weight: normal;
+}
+
+span.cm-comment, span.cm-string {
+    color: rgb(218, 208, 133);
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+}
+
+#editor, #preview {
+    width: 50%;
+    height: 100%;
+    float: left;
+    overflow-y: scroll;
+}
+
+#preview {
+    background-color: white;
+}
+
+#preview .contents {
+    padding: 1em;
+}
+
+#save {
+    position: fixed;
+    right: 50%;
+    top: 0;
+    display: block;
+    color: rgb(125, 125, 125);
+    text-decoration: none;
+    padding: .75em 2em;
+}
+
+.dialog {
+    display: none;
+}
+
+.dialog .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: black;
+    opacity: .7;
+}
+
+.dialog .contents {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    box-shadow: 0 0 10px white;
+    border-radius: 4px;
+    background-color: rgb(60, 60, 60);
+    color: white;
+    width: 50%;
+    height: 50%;
+    padding: 1em;
+}
+
+#save-dialog .contents {
+    width: 400px;
+    height: 230px;
+}
+
+#save-dialog .contents h3 {
+    margin-top: 0;
+}
+
+#save-dialog .contents input[type=text] {
+    width: 100%;
+}
+
+#save-dialog .contents label {
+    display: block;
+}
+
+div.field {
+    margin-bottom: 1em;
+}

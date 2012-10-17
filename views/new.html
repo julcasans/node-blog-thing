@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block moarcss %}
+  <link rel="stylesheet" href="/codemirror-2.34/lib/codemirror.css">
+  <link rel="stylesheet" href="/css/editor.css">
+{% endblock %}
+
+{% block moarjs %}
+  <script src="/codemirror-2.34/lib/codemirror.js"></script>
+  <script src="/codemirror-2.34/mode/markdown/markdown.js"></script>
+  <script src="/js/editor.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="app">
+  <div id="editor"></div>
+  <div id="preview">
+    <div class="contents">
+    </div>
+  </div>
+  <a id="save" href="#"><img src="/img/floppy.png" /></a>
+</div>
+
+<div id="save-dialog" class="dialog">
+  <div class="overlay"></div>
+  <div class="contents">
+    <h3>Save</h3>
+    <form action="/new" method="post">
+      <input type="hidden" name="content" value="" />
+
+      <div class="field">
+         <label>Title:</label>
+         <input type="text" name="title" value="{{ post.title | default('') }}" />
+      </div>
+
+      <div class="field">
+        <label>Tags:</label>
+        <input type="text" name="tags" value="{{ post.tags | default('') }}" />
+      </div>
+
+      <div class="field">
+        <input type="checkbox" name="published"
+               {% if post.published == 'y' %}checked="checked"{% endif %}/>
+        Published
+      </div>
+
+      <button type="submit">Save</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  window.EDITOR_CONTENTS = "{{ post.content | default('') | replace('\r', '') | replace('\n', '\\\n') }}";
+</script>
+{% endblock %}
