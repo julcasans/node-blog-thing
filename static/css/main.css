@@ -14,6 +14,7 @@ body {
 .content {
   margin: 0 auto;
   width: 900px;
+  position: relative;
 }
 .page {
   display: inline;
@@ -72,11 +73,6 @@ body {
   margin-top: 1em;
   margin-bottom: -0.5em;
 }
-.sidebar,
-.page {
-  margin-top: 3em;
-  padding-top: 5px;
-}
 a,
 a:visited,
 a:active {
@@ -85,6 +81,20 @@ a:active {
 }
 a:hover {
   text-decoration: underline;
+}
+header {
+  overflow: hidden;
+  margin: 1em 0;
+}
+.login {
+  float: right;
+}
+.login span {
+  font-style: italic;
+  font-size: .75em;
+}
+.top-title {
+  margin-top: 0;
 }
 #home .more {
   font-style: italic;
@@ -113,6 +123,13 @@ article h1 {
   margin-bottom: .1em;
   margin-top: 0;
 }
+article .edit {
+  float: right;
+  font-size: .9em;
+  font-style: italic;
+  position: relative;
+  top: .1em;
+}
 article .tags {
   color: #9c9c9c;
   text-transform: uppercase;
@@ -125,15 +142,20 @@ article .date {
   font-family: Verdana, sans-serif;
   font-size: .75em;
 }
-#post h1 {
+.post h1 {
   font-size: 1.8em;
   line-height: 1em;
 }
-#post .social {
+.post .edit {
+  font-size: 1em;
+  position: relative;
+  top: .35em;
+}
+.post .social {
   margin: 1em 0;
   line-height: 1em;
 }
-#post .twitter-share-button {
+.post .twitter-share-button {
   float: right;
 }
 #tag h1 {
@@ -145,6 +167,9 @@ article .date {
 #tag .date,
 #tag .tags {
   line-height: 1em;
+}
+.figure {
+  text-align: center;
 }
 figure.clipped .gutter,
 figure.clipped .gutter {

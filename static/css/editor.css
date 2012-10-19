@@ -15,6 +15,10 @@ html, body {
     height: 100%;
 }
 
+.ace_indent-guide {
+    background: none !important;
+}
+
 #editor {
     top: 0;
     left: 0;
@@ -37,7 +41,7 @@ html, body {
     padding: 1em;
 }
 
-#save {
+#save, #delete {
     position: fixed;
     right: 50%;
     top: 0;
@@ -47,9 +51,12 @@ html, body {
     padding: .75em 2em;
 }
 
+#delete {
+    top: 45px;
+}
+
 .dialog {
     display: none;
-    z-index: 1000;
 }
 
 .dialog .overlay {
@@ -76,11 +83,12 @@ html, body {
     width: 50%;
     height: 50%;
     padding: 1em;
+    z-index: 1000;
 }
 
 #save-dialog .contents {
     width: 400px;
-    height: 230px;
+    height: 275px;
 }
 
 #save-dialog .contents h3 {

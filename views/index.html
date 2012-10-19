@@ -30,17 +30,19 @@
   </p>
 </section>
 
-<p><a href="/new">New Post</a></p>
-
-<p><a href="/drafts">View Drafts</a></p>
-
 <section class="recent">
   <h1>Recent Posts</h1>
 
   {% for post in posts %}
   <article>
+    <a class="edit" href="/edit/{{ post.shorturl }}">Edit this Article</a>
     <h1><a href="/{{ post.shorturl }}">{{ post.title }}</a></h1>
-    <div class="date">{{ post.date | formatdate }} (updated {{ post.updatedDate }})</div>
+    <div class="date">
+      {{ post.date | formatdate }}
+      {% if post.updatedDate %}
+        <em>(updated {{ post.updatedDate | formatdate }})</em>
+      {% endif %}
+    </div>
     <div class="abstract">{{ post.content | getParagraphs(4) | ghm }}</div>
     <p class="more"><a href="/{{ post.shorturl }}">Continue reading...</a></p>
     <div class="tags">
@@ -53,17 +55,4 @@
   {% endfor %}
 </section>
  
-<p>
-  Tags: 
-  <ul>
-    {% for tag in tags %}
-    <li><a href="/tag/{{ tag }}">{{ tag }}</a></li>
-    {% endfor %}
-  </ul>
-</p>
-
-<p>
-  Archive: <a href="/archive">View all posts</a>
-</p>
-
 {% endblock %}

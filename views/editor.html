@@ -1,20 +1,21 @@
 <!DOCTYPE>
 <html>
   <head>
-    <title>Editing {{ post.title }}</title>
+    <title>Editing {{ post.title | default('') }}</title>
     <link rel="stylesheet" href="/css/editor.css">
   </head>
   <body>
     <div id="app">
-      <div id="editor">
-        {{ post.content | default('') }}
-      </div>
+      <div id="editor">{{ post.content | default('') }}</div>
       <div id="preview">
         <div class="contents">
         </div>
       </div>
       <a id="save" href="#"><img src="/img/floppy.png" /></a>
+      <a id="delete" href="#"><img src="/img/floppy.png" /></a>
     </div>
+
+    <input type="hidden" name="title" value="{{ post.title | default('') }}" />
 
     <div id="save-dialog" class="dialog">
       <div class="overlay"></div>
@@ -29,6 +30,11 @@
           </div>
 
           <div class="field">
+            <label>Short URL:</label>
+            <input type="text" name="shorturl" value="{{ post.shorturl | default('') }}" />
+          </div>
+
+          <div class="field">
             <label>Tags:</label>
             <input type="text" name="tags" value="{{ post.tags | default('') }}" />
           </div>
@@ -37,6 +43,15 @@
             <input type="checkbox" name="published"
                    {% if post.published == 'y' %}checked="checked"{% endif %}/>
             Published
+          </div>
+
+          <div class="field">
+            <label for="date">Date (ignored for drafts)</label>
+            <select name="date">
+              {% for date in availableDates %}
+              <option value="{{ date }}">{{ date | formatdate }}</option>
+              {% endfor %}
+            </select>
           </div>
 
           <button type="submit">Save</button>

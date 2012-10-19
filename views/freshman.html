@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not user %}
+You don't belong here. It's not time for you yet. Log in and come back later.
+{% else %}
+
+<h2 class="top-title">It looks like you've never been here before.</h2>
+
+<p>
+  Well, you haven't logged in before at least. How's it feel? You are
+  now part of an awesome web hacker guild. Or something like that.
+</p>
+
+<div class="figure">
+  <img src="/img/success.jpg" />
+</div>
+
+<p>
+  <strong>What now?</strong> For starters, you can edit posts
+  and changes you make will be emailed to me. By doing so, you're
+  helping make the web a better place with correct tutorials and
+  documentation.
+</p>
+
+<p>
+  That's about all you can do right now. In the future, I'm
+  considering allowing guest posts and other fun stuff. Stick around!
+</p>
+
+{% endif %}
+{% endblock %}
