@@ -206,6 +206,10 @@ require('express-persona')(app, {
             getUser(email, function(user) {
                 if(user) {
                     req.session.user = user;
+                    // This runs *after* the auth middleware runs, so
+                    // need to set this here or the first page view
+                    // won't have a user set
+                    res.locals.user = user;
                     res.json({ status: "okay", email: email });
                 }
                 else {
@@ -214,6 +218,8 @@ require('express-persona')(app, {
 
                     saveUser(user, function() {
                         req.session.user = user;
+                        // Same here, see comment above
+                        res.locals.user = user;
                         res.json({ status: "okay",
                                    email: email,
                                    freshman: true });
@@ -235,6 +241,24 @@ require('express-persona')(app, {
     }
 });
 
+function requireAdmin(req, res, next) {
+    if(req.session.user && req.session.user.admin) {
+        next();
+    }
+    else {
+        res.status(401).render('auth-error.html');
+    }
+}
+
+function loggedIn(req, res, next) {
+    if(req.session.user) {
+        next();
+    }
+    else {
+        res.status(401).render('auth-error.html');
+    }
+}
+
 // Routes
 
 app.get('/', function(req, res) {
@@ -247,7 +271,7 @@ app.get('/', function(req, res) {
     });
 });
 
-app.get('/drafts', function(req, res) {
+app.get('/drafts', requireAdmin, function(req, res) {
     getAllPosts('drafts', function(posts) {
         res.render('drafts.html', { posts: posts });
     });
@@ -259,7 +283,7 @@ app.get('/archive', function(req, res) {
     });
 });
 
-app.get('/new', function(req, res) {
+app.get('/new', requireAdmin, function(req, res) {
     res.render('editor.html', { availableDates: previousDates() });
 });
 
@@ -304,7 +328,7 @@ app.get('/freshman', function(req, res) {
     res.render('freshman.html');
 });
 
-app.post('/delete/:post', function(req, res) {
+app.post('/delete/:post', requireAdmin, function(req, res) {
     var key = dbkey('post', req.params.post);
 
     client.zrem(dbkey('posts'), key);
@@ -319,7 +343,7 @@ app.post('/delete/:post', function(req, res) {
     res.send('ok');
 });
 
-app.post('/new', function(req, res) {
+app.post('/new', requireAdmin, function(req, res) {
     var content = req.body.content;
     var title = req.body.title;
     var published = req.body.published ? 'y' : 'n';
@@ -400,7 +424,7 @@ app.get('/email-changes', function(req, res) {
     res.render('email-changes.html');
 });
 
-app.post('/email-changes', function(req, res) {
+app.post('/email-changes', loggedIn, function(req, res) {
     // TODO: this was quickly rewritten and will be refactored/commented
     var shorturl = req.body.shorturl;
     var content = req.body.content;
@@ -419,7 +443,7 @@ app.post('/email-changes', function(req, res) {
             fs.writeFile(file2, content, 'utf-8', emailDiff);
         }
     }
-
+    
     function emailDiff(err) {
         if(!err) {
             var output = '';
@@ -454,10 +478,6 @@ app.post('/email-changes', function(req, res) {
                         }
                     });
                 }
-            });
-
-            diff.stderr.on('data', function(data) {
-                errOutput += data;
             });
         }
     }
