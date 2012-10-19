@@ -5,8 +5,14 @@ var redisStore = require('connect-redis')(express);
 var ghm = require('github-flavored-markdown');
 var moment = require('moment');
 var _ = require('underscore');
+var path = require('path');
+var fs = require('fs');
+var spawn = require('child_process').spawn;
+var email = require('emailjs/email');
 
-var ADMINS = ['jlong@mozilla.com'];
+var settings = require('./settings');
+
+var ADMINS = ['longster@gmail.com'];
 
 // Util
 
@@ -30,6 +36,11 @@ function previousDates() {
     }
 
     return dates;
+}
+
+function tmpFile() {
+    // TODO: use a proper tmp file lib
+    return 'blogthing-' + Math.floor(Math.random()*10000) + Date.now();
 }
 
 // Database
@@ -385,8 +396,75 @@ app.post('/new', function(req, res) {
     res.redirect('/');
 });
 
+app.get('/email-changes', function(req, res) {
+    res.render('email-changes.html');
+});
+
+app.post('/email-changes', function(req, res) {
+    // TODO: this was quickly rewritten and will be refactored/commented
+    var shorturl = req.body.shorturl;
+    var content = req.body.content;
+
+    res.send('ok');
+
+    var file1 = path.join(settings.tmpdir, tmpFile());
+    var file2 = path.join(settings.tmpdir, tmpFile());
+
+    getPost(dbkey('post', shorturl), function(post) {
+        fs.writeFile(file1, post.content, 'utf-8', writeOther);
+    });
+
+    function writeOther(err) {
+        if(!err) {
+            fs.writeFile(file2, content, 'utf-8', emailDiff);
+        }
+    }
+
+    function emailDiff(err) {
+        if(!err) {
+            var output = '';
+            var errOutput = '';
+            var error = null;
+            var diff = spawn('diff', ['-w', file1, file2]);
+
+            diff.stdout.on('data', function(data) {
+                output += data;
+            });
+
+            diff.stdout.on('close', function() {
+                if(output && ADMINS.length) {
+                    var server = email.server.connect({
+                        user: settings.emailUser,
+                        password: settings.emailPass,
+                        host: settings.emailHost,
+                        ssl: settings.emailSsl
+                    });
+
+                    var text = ('FROM: ' + req.session.user.email + '\n\n' +
+                                'PATCH: \n' + output);
+                    
+                    server.send({
+                        text: text,
+                        from: 'nobody@example.com',
+                        to: ADMINS[0],
+                        subject: 'submitted patch'
+                    }, function(err, msg) {
+                        if(err) {
+                            throw err;
+                        }
+                    });
+                }
+            });
+
+            diff.stderr.on('data', function(data) {
+                errOutput += data;
+            });
+        }
+    }
+});
+
 app.post('/markdown', function(req, res) {
     res.send(ghm.parse(req.body.doc));
 });
 
-app.listen(4000);
+app.listen(settings.port);

@@ -11,11 +11,19 @@
         <div class="contents">
         </div>
       </div>
-      <a id="save" href="#"><img src="/img/floppy.png" /></a>
-      <a id="delete" href="#"><img src="/img/floppy.png" /></a>
-    </div>
 
-    <input type="hidden" name="title" value="{{ post.title | default('') }}" />
+      <div class="actions">
+        {% if user %}
+          <a class="action {% if user.admin %}save{% else %}submit{% endif %}" href="#">
+            <img src="/img/save.png" />
+          </a>
+          {% if user.admin %}
+          <a class="action delete" href="#"><img src="/img/delete.png" /></a>
+          {% endif %}
+        {% endif %}
+        <a class="action exit" href="#"><img src="/img/exit.png" /></a>
+      </div>
+    </div>
 
     <div id="save-dialog" class="dialog">
       <div class="overlay"></div>

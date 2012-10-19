@@ -39,7 +39,7 @@
     <h1><a href="/{{ post.shorturl }}">{{ post.title }}</a></h1>
     <div class="date">
       {{ post.date | formatdate }}
-      {% if post.updatedDate %}
+      {% if post | isUpdated %}
         <em>(updated {{ post.updatedDate | formatdate }})</em>
       {% endif %}
     </div>

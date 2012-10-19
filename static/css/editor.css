@@ -41,7 +41,7 @@ html, body {
     padding: 1em;
 }
 
-#save, #delete {
+.actions {
     position: fixed;
     right: 50%;
     top: 0;
@@ -51,8 +51,9 @@ html, body {
     padding: .75em 2em;
 }
 
-#delete {
-    top: 45px;
+.actions .action {
+    display: block;
+    margin-bottom: .75em;
 }
 
 .dialog {
@@ -88,7 +89,7 @@ html, body {
 
 #save-dialog .contents {
     width: 400px;
-    height: 275px;
+    height: 325px;
 }
 
 #save-dialog .contents h3 {
