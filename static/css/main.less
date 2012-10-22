@@ -104,11 +104,8 @@ header {
 
 .login {
     float: right;
-
-    span {
-        font-style: italic;
-        font-size: .75em;
-    }
+    font-style: italic;
+    font-size: .75em;
 
     img {
         cursor: pointer;
@@ -278,4 +275,18 @@ figure#js-cps2 .code pre {
     margin-top: 3em;
 }
 
-@import 'pygments.less';
+// code highlighting
+
+pre code {
+    border-radius: 6px;
+    font-size: 1.15em;
+    overflow: auto;
+    padding: 1em 1.5em;
+    line-height: 1.3em;
+    margin: 0;
+
+    pre {
+        padding: 0;
+        margin: 0;
+    }
+}

@@ -13,14 +13,26 @@ $(function() {
     var title = $('input[name=title]').val() || 'Needs title';
     var shorturl = $('input[name=shorturl]').val();
 
-    setInterval(function() {
+    function updatePreview() {
         var text = editor.getValue();
         $.post('/markdown', { doc: text }, function(r) {
-            $('#preview .contents').html(
-                '<h1>' + title + '</h1>' + r
-            );
+            var str = '';
+
+            if(window.CURRENT_USER) {
+                str += '<div class="user">Logged in as <strong>' +
+                    window.CURRENT_USER + '</strong></div>';
+            }
+            else {
+                str += '<div class="user">Not logged in, unable to save</div>';
+            }
+
+            str += '<h1>' + title + '</h1>' + r;
+            $('#preview .contents').html(str);
         });
-    }, 2000);
+    }
+
+    updatePreview();
+    setInterval(updatePreview, 2000);
 
     $('.action.save').click(function() {
         var text = editor.getValue();

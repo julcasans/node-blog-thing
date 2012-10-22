@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/css/main.css" type="text/css" />
     {% endif %}
 
+    <link rel="stylesheet" href="/css/highlight/solarized_dark.css" />
+
     {% block moarcss %}{% endblock %}
   </head>
   <body
@@ -21,8 +23,8 @@
       <header>
         <div class="login">
           {% if user %}
-          <span>Logged in as <strong>{{ user.email }}</strong>
-          (<a class="logout" href="#">Logout</a>)</span>
+          Logged in as <strong>{{ user.email }}</strong>
+          (<a class="logout" href="#">Logout</a>)
           {% else %}
             <img src="https://browserid.org/i/sign_in_red.png" id="browserid"/>
           {% endif %}

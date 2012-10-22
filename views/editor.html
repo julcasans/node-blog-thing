@@ -6,7 +6,7 @@
   </head>
   <body>
     <div id="app">
-      <div id="editor">{{ post.content | default('') }}</div>
+      <div id="editor">{{ post.content | escape | default('') }}</div>
       <div id="preview">
         <div class="contents">
         </div>
@@ -57,7 +57,10 @@
             <label for="date">Date (ignored for drafts)</label>
             <select name="date">
               {% for date in availableDates %}
-              <option value="{{ date }}">{{ date | formatdate }}</option>
+              <option value="{{ date }}"
+                      {% if post.date == date %}selected="selected"{% endif %}>
+                {{ date | formatdate }}
+              </option>
               {% endfor %}
             </select>
           </div>
@@ -67,6 +70,9 @@
       </div>
     </div>
 
+    <script>
+      window.CURRENT_USER = {% if user %}"{{ user.email }}"{% else %}null{% endif %};
+    </script>
     <script src="/js/zepto.min.js"></script>
     <script src="/js/ace/ace.js"></script>
     <script src="/js/editor.js"></script>

@@ -2,7 +2,6 @@ var express = require('express');
 var nunjucks = require('nunjucks');
 var redis = require('redis');
 var redisStore = require('connect-redis')(express);
-var ghm = require('github-flavored-markdown');
 var moment = require('moment');
 var _ = require('underscore');
 var path = require('path');
@@ -10,6 +9,7 @@ var fs = require('fs');
 var spawn = require('child_process').spawn;
 var email = require('emailjs/email');
 
+var ghm = require('./showdown-ghm');
 var settings = require('./settings');
 
 var ADMINS = ['longster@gmail.com'];
@@ -17,12 +17,22 @@ var ADMINS = ['longster@gmail.com'];
 // Util
 
 function formatDate(date, format) {
-    if(!(date instanceof Date)) {
-        date = new Date(parseInt(date) || null);
+    if(typeof date == 'number') {
+        date = intToDate(date);
     }
-    format = format || 'MMMM Do YYYY';
+    else if(typeof date == 'string') {
+        date = intToDate(parseInt(date));
+    }
 
-    return moment(date).format(format);
+    return date.format(format || 'MMMM Do YYYY');
+}
+
+function dateToInt(date) {
+    return parseInt(date.format('YYYYMMDD'));
+}
+
+function intToDate(x) {
+    return moment(x.toString(), 'YYYYMMDD');
 }
 
 function previousDates() {
@@ -31,7 +41,7 @@ function previousDates() {
     var dates = [];
 
     while(current > end) {
-        dates.push(current.valueOf());
+        dates.push(dateToInt(current));
         current = current.subtract('days', 1);
     }
 
@@ -188,9 +198,7 @@ env.addFilter('ghm', function(str) {
 });
 
 env.addFilter('isUpdated', function(post) {
-    // If the updatedDate is more than a days old, yes
-    return post.updatedDate &&
-        post.updatedDate - post.date > 1000*60*60*24;
+    return post.updatedDate && post.updatedDate != post.date;
 });
 
 // Authentication
@@ -205,11 +213,8 @@ require('express-persona')(app, {
         else {
             getUser(email, function(user) {
                 if(user) {
+                    console.log('setting ' + user.email);
                     req.session.user = user;
-                    // This runs *after* the auth middleware runs, so
-                    // need to set this here or the first page view
-                    // won't have a user set
-                    res.locals.user = user;
                     res.json({ status: "okay", email: email });
                 }
                 else {
@@ -217,9 +222,8 @@ require('express-persona')(app, {
                              admin: ADMINS.indexOf(email) !== -1 };
 
                     saveUser(user, function() {
+                        console.log('setting ' + user.email);
                         req.session.user = user;
-                        // Same here, see comment above
-                        res.locals.user = user;
                         res.json({ status: "okay",
                                    email: email,
                                    freshman: true });
@@ -348,14 +352,15 @@ app.post('/new', requireAdmin, function(req, res) {
     var title = req.body.title;
     var published = req.body.published ? 'y' : 'n';
     var shorturl = req.body.shorturl || title.replace(' ', '-');
-    var date = parseInt(req.body.date);
+    var date = moment(req.body.date, 'YYYYMMDD');
+    var dateInt = dateToInt(date);
     var tags = _.map(req.body.tags.split(','),
                      function(tag) {
                          return tag.replace(/^\s*|\s*$/g, '');
                      });
 
     if(!title) {
-        title = ('Draft ' + formatDate(new Date()));
+        title = ('Draft ' + formatDate(moment()));
         published = false;
     }
 
@@ -371,8 +376,16 @@ app.post('/new', requireAdmin, function(req, res) {
         // The post already exists and is published
         if(published == 'y' && obj && obj.published == 'y') {
             var prevTags = obj.tags.split(',');
-            client.hset(key, 'date', date.toString());
-            client.hset(key, 'updatedDate', Date.now().toString());
+            client.hset(key, 'date', dateInt.toString());
+
+            // Update the sorting
+            client.zadd(dbkey('posts'), dateInt, key);
+
+            if(obj.content != content) {
+                client.hset(key,
+                            'updatedDate',
+                            dateToInt(moment()).toString());
+            }
 
             // Removed from these tags
             _.difference(prevTags, tags).forEach(function(tag) {
@@ -388,12 +401,12 @@ app.post('/new', requireAdmin, function(req, res) {
         // The post either didn't exist or wasn't published, and
         // should be
         else if(published == 'y') {
-            client.hset(key, 'date', date.toString());
-            client.zadd(dbkey('posts'), date, key);
+            client.hset(key, 'date', dateInt.toString());
+            client.zadd(dbkey('posts'), dateInt, key);
             client.zrem(dbkey('drafts'), key);
 
             tags.forEach(function(tag) {
-                client.zadd(dbkey('tag', tag), date, key);
+                client.zadd(dbkey('tag', tag), dateInt, key);
             });
         }
 
@@ -409,13 +422,16 @@ app.post('/new', requireAdmin, function(req, res) {
                 });
             }
 
-            var now = Date.now();
+            var now = dateToInt(moment());
             client.hset(key, 'date', now.toString());
             client.zadd(dbkey('drafts'),
                         now,
                         key);
         }
     });
+
+    // Make sure it persists to the disk
+    client.save();
 
     res.redirect('/');
 });
