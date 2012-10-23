@@ -1,4 +1,4 @@
-@import "solarized-dark.css";
+@import 'code.css';
 body {
   width: 100%;
   float: left;
@@ -217,9 +217,11 @@ pre code {
   line-height: 1.3em;
   margin: 0;
 }
-pre code pre {
-  padding: 0;
-  margin: 0;
+pre code {
+  color: #93a1a1;
+}
+pre code .quoted {
+  color: #586e75;
 }
 #The-Quest-for-Javascript-CPS--Part-2 button {
   font-size: .8em;

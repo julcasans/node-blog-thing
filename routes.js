@@ -180,7 +180,8 @@ module.exports = function(app, env) {
     app.get('/tag/:tag', function(req, res) {
         db.getAllPostsByTag(req.params.tag, function(err, posts) {
             if(!u.handleError(err)) {
-                res.render('tag.html', { posts: posts });
+                res.render('tag.html', { tag: req.params.tag,
+                                         posts: posts });
             }
         });
     });
