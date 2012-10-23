@@ -20,7 +20,6 @@
      {% if bodyId %}id="{{ bodyId }}"{% endif %}
      {% if bodyClass %}class="{{ bodyClass }}"{% endif %}>
     <div class="content">
-      {{ count }}
       <header>
         <div class="login">
           {% if user %}
@@ -44,15 +43,15 @@
           </div>
         </section>
 
+        {% if user.admin %}
         <section>
           <h4>Blogging</h4>
           <ul>
             <li><a href="/new">New Post</a></li>
-            {% if user.admin %}
             <li><a href="/drafts">View Drafts</a></li>
-            {% endif %}
           </ul>
         </section>
+        {% endif %}
 
         <section class="twitter">
           <h4>Tweeterific</h4>

@@ -46,11 +46,7 @@ navigator.id.watch({
 
     onlogout: function() {
         $.post('/persona/logout', function() {
-            // Persona seems to need a little time for the change to
-            // take effect
-            setTimeout(function() {
-                window.location = '/';
-            }, 1000);
+            window.location = '/';
         });
     }
 });

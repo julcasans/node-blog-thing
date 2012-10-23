@@ -48,7 +48,8 @@ html, body {
     display: block;
     color: rgb(125, 125, 125);
     text-decoration: none;
-    padding: .75em 2em;
+    padding: .75em;
+    margin-right: 1em;
 }
 
 .actions .action {
