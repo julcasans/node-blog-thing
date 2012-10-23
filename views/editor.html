@@ -2,11 +2,12 @@
 <html>
   <head>
     <title>Editing {{ post.title | default('') }}</title>
-    <link rel="stylesheet" href="/css/editor.css">
+    <link rel="stylesheet" href="/css/editor.css" type="text/css" />
+    <link rel="stylesheet" href="/css/highlight/solarized_dark.css" type="text/css" />
   </head>
   <body>
     <div id="app">
-      <div id="editor">{{ post.content | escape | default('') }}</div>
+      <div id="editor">{{ post.content | default('') | escape }}</div>
       <div id="preview">
         <div class="contents">
         </div>
@@ -31,6 +32,7 @@
         <h3>Save</h3>
         <form action="/new" method="post">
           <input type="hidden" name="content" value="" />
+          <input type="hidden" name="prevShorturl" value="{{ post.shorturl | default('') }}" />
 
           <div class="field">
             <label>Title:</label>

@@ -15,6 +15,11 @@ $(function() {
 
     function updatePreview() {
         var text = editor.getValue();
+
+        // Don't show iframes/objects in live preview, it's slow
+        text = text.replace(/<(iframe|object)[^>]*>[^<]*<\/[^>]*>/g,
+                            '<em>&lt;iframe/object/embed&gt;</em>');
+
         $.post('/markdown', { doc: text }, function(r) {
             var str = '';
 
@@ -72,8 +77,7 @@ $(function() {
 
         if(confirm('Are you sure you want to leave? '
                    + 'Any changes will be lost')) {
-            // todo, don't do this
-            window.history.back();
+            window.location.href = '/' + shorturl;
         }
     });
 

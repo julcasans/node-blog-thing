@@ -463,7 +463,11 @@ var _RunBlockGamut = function(text) {
 
 	text = _DoLists(text);
 	text = _DoCodeFencing(text);
-	text = _DoCodeBlocks(text);
+
+    // Removed because it processes code that is inside a code fence and
+    // already, adding extra pre and code blocks (jwl)
+	// text = _DoCodeBlocks(text);
+
 	text = _DoBlockQuotes(text);
 
 	// We already ran _HashHTMLBlocks() before, in Markdown(), but that
@@ -1013,12 +1017,6 @@ var _DoCodeFencing = function(text) {
                 m1 = 'javascript';
             }
 
-            
-            m2 = m2.replace(/&/g, '&amp;')
-                  .replace(/'/g, '&#39;')
-                  .replace(/</g, '&lt;')
-                  .replace(/>/g, '&gt;');
-
             // Use highlight.js server-side (jwl)
 			var codeblock = '<div class="highlight"><pre><code class="'+m1+'">';
 
@@ -1026,6 +1024,12 @@ var _DoCodeFencing = function(text) {
                 codeblock += hljs.highlight(m1, m2).value;
             }
             catch(e) {
+                // The highlighter automatically escapes, but we need
+                // to manually here (jwl)
+                m2 = m2.replace(/&/g, '&amp;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
                 codeblock += m2;
             }
 

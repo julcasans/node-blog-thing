@@ -12,6 +12,10 @@ var email = require('emailjs/email');
 var ghm = require('./showdown-ghm');
 var settings = require('./settings');
 
+// Install a scheme mode
+var hljs = require('highlight.js');
+hljs.LANGUAGES['scheme'] = require('./scheme.js')(hljs);
+
 var ADMINS = ['longster@gmail.com'];
 
 // Util
@@ -37,7 +41,7 @@ function intToDate(x) {
 
 function previousDates() {
     var current = moment();
-    var end = moment().subtract('years', 1);
+    var end = moment().subtract('years', 2);
     var dates = [];
 
     while(current > end) {
@@ -51,6 +55,10 @@ function previousDates() {
 function tmpFile() {
     // TODO: use a proper tmp file lib
     return 'blogthing-' + Math.floor(Math.random()*10000) + Date.now();
+}
+
+function slugify(name) {
+    return name.replace(/[ !@#$%^&*():"'|?=]/g, '-');
 }
 
 // Database
@@ -70,19 +78,36 @@ function dbSplitKey(key) {
     return key.split('::');
 }
 
-function getAllPosts(type, cb) {
-    if(_.isFunction(type)) {
-        cb = type;
-        type = 'posts';
+function getAllPosts(includeDrafts, cb) {
+    if(_.isFunction(includeDrafts)) {
+        cb = includeDrafts;
+        includeDrafts = false;
     }
 
-    client.zrevrange(dbkey(type), 0, -1, function(err, keys) {
-        getAllPostsByKeys(keys, cb);
+    client.zrevrange(dbkey('posts'), 0, -1, function(err, keys) {
+        if(err) {
+            throw err;
+        }
+
+        getAllPostsByKeys(keys, function(posts) {
+            if(!includeDrafts) {
+                cb(_.filter(posts, function(p) {
+                    return p.published == 'y';
+                }));
+            }
+            else {
+                cb(posts);
+            }
+        });
     });
 }
 
 function getPost(key, cb) {
-    client.hgetall(key, function(err, obj) {
+    client.hgetall([key], function(err, obj) {
+        if(err) {
+            throw err;
+        }
+
         if(obj) {
             obj.tags = (obj.tags && obj.tags.split(',')) || [];
         }
@@ -93,13 +118,18 @@ function getPost(key, cb) {
 
 function getAllPostsByKeys(keys, cb) {
     var posts = [];
+    var count = 0;
 
     if(keys.length) {
         keys.forEach(function(key) {
             getPost(key, function(obj) {
-                posts.push(obj);
+                if(obj) {
+                    posts.push(obj);
+                }
 
-                if(posts.length == keys.length) {
+                count++;
+
+                if(count == keys.length) {
                     cb(posts);
                 }
             });
@@ -122,6 +152,28 @@ function getAllTags(cb) {
             var k = dbSplitKey(key);
             return k[k.length - 1];
         }));
+    });
+}
+
+function renamePost(post, newKey, cb) {
+    var key = dbkey('post', post.shorturl);
+    var multi = client.multi();
+
+    multi.rename(key, newKey)
+        .zrem(dbkey('posts'), key)
+        .zadd(dbkey('posts'), post.date, newKey);
+
+    post.tags.forEach(function(tag) {
+        multi.zrem(dbkey('tag', tag), key)
+            .zadd(dbkey('tag', tag), post.date, newKey);
+    });
+
+    multi.exec(function(err) {
+        if(err) {
+            throw err;
+        }
+
+        cb();
     });
 }
 
@@ -152,6 +204,12 @@ app.configure(function() {
 
     app.use(function(req, res, next) {
         res.locals.user = req.session.user;
+
+        if(!req.session.count) {
+            req.session.count = 0;
+        }
+
+        res.locals.count = req.session.count++;
         next();
     });
 });
@@ -201,6 +259,10 @@ env.addFilter('isUpdated', function(post) {
     return post.updatedDate && post.updatedDate != post.date;
 });
 
+env.addFilter('print', function(msg) {
+    console.log(msg);
+});
+
 // Authentication
 
 require('express-persona')(app, {
@@ -208,12 +270,11 @@ require('express-persona')(app, {
 
     verifyResponse: function(err, req, res, email) {
         if(err) {
-            res.json({ status: "failure", reason: err }); 
+            res.json({ status: "failure", reason: err });
         }
         else {
             getUser(email, function(user) {
                 if(user) {
-                    console.log('setting ' + user.email);
                     req.session.user = user;
                     res.json({ status: "okay", email: email });
                 }
@@ -222,7 +283,6 @@ require('express-persona')(app, {
                              admin: ADMINS.indexOf(email) !== -1 };
 
                     saveUser(user, function() {
-                        console.log('setting ' + user.email);
                         req.session.user = user;
                         res.json({ status: "okay",
                                    email: email,
@@ -265,6 +325,55 @@ function loggedIn(req, res, next) {
 
 // Routes
 
+var spoofUrls = {
+    'nunjucks-v0.1.5': '2012/10/11/nunjucks-v0.1.5.html',
+    'Javascript-s-Future--Generators': '2012/10/05/javascript-yield.html',
+
+    'Introducing-Nunjucks,-a-Better-Javascript-Templating-System':
+    '2012/09/20/nunjucks.html',
+
+    'The-Rise-of-the-Mobile-Web--and-Web-Audio-on-iOS-6-':
+    '2012/09/12/web-apps.html',
+
+    'Ahoy--Adventures-in-the-Internet': '2012/07/17/ahoy-internet.html',
+    'The-Quest-for-Javascript-CPS--Part-2': '2012/05/18/cps-results.html',
+
+    'Compiling-to-Javascript-in-CPS,-Can-We-Optimize-':
+    '2012/05/11/cps-optimizations.html',
+
+    'Tilt-This': '2012/04/03/tilt-this.html',
+
+    'Experimenting-with-Debugging-Languages-in-the-Browser':
+    '2012/03/20/debugging-in-the-browser.html',
+
+    'Lisp--It-s-Not-About-Macros,-It-s-About-Read':
+    '2012/02/18/its-not-about-macros-its-about-read.html',
+
+    'New-whizz-bang-in-Outlet': '2012/02/16/new-features-in-outlet.html',
+    'Outlet-gets-a-Personality': '2012/01/16/outlet-gets-a-personality.html',
+
+    'Outlet-gets-Macros': '2012/01/13/outlet-gets-macros.html',
+
+    'Roadmap-for-the-Outlet-Language':
+    '2012/01/10/roadmap-for-the-outlet-language.html',
+
+    'Outlet--My-Lisp-to-Javascript-Experiment':
+    '2012/01/04/outlet-my-lisp-to-javascript-experiment.html',
+
+    'Flame--My-2d-Game-Experiment': '2011/12/30/flame-my-2d-game-experiment.html',
+
+    'Rotating-Webpages-with-a-Gamepad':
+    '2011/12/29/rotating-webpages-with-a-gamepad.html',
+
+    'SICP-2.6--Church-Numerals': '2011/12/16/sicp-26-church-notation.html',
+
+    'SICP-2.5': '2011/12/14/sicp-25.html',
+    'SICP-1.35': '2011/12/13/sicp-135.html',
+
+    'Going-Fullscreen-with-Canvas': '2011/11/21/canvas.html',
+    'dom3d--rendering-3d-with-CSS': '2011/08/04/dom3d-rendering-3d-with-css.html'
+};
+
 app.get('/', function(req, res) {
     getAllPosts(function(posts) {
         getAllTags(function(tags) {
@@ -276,7 +385,8 @@ app.get('/', function(req, res) {
 });
 
 app.get('/drafts', requireAdmin, function(req, res) {
-    getAllPosts('drafts', function(posts) {
+    getAllPosts(true, function(posts) {
+        posts = _.filter(posts, function(p) { return p.published == 'n'; });
         res.render('drafts.html', { posts: posts });
     });
 });
@@ -301,23 +411,50 @@ app.get('/edit/:post', function(req, res) {
     else {
         res.redirect('/notify-permissions?next=' + req.originalUrl);
     }
-    
+
 });
 
 app.get('/notify-permissions', function(req, res) {
     res.render('notify-permissions.html');
 });
 
-app.get('/:post', function(req, res, next) {
-    getPost(dbkey('post', req.params.post), function(obj) {
+app.get(/^\/(.*)$/, function(req, res, next) {
+    function renderPost(post) {
+        post.rendered = ghm.parse(post.content);
+        res.render('post.html', { post: post,
+                                  bodyId: post.shorturl,
+                                  bodyClass: 'post' });
+    }
+
+    var url = req.params[0];
+
+    getPost(dbkey('post', url), function(obj) {
         if(obj) {
-            obj.rendered = ghm.parse(obj.content);
-            res.render('post.html', { post: obj,
-                                      bodyId: obj.shorturl,
-                                      bodyClass: 'post' });
+            // Old posts ported over had a different URL scheme
+            if(spoofUrls[obj.shorturl]) {
+                res.redirect(spoofUrls[obj.shorturl]);
+            }
+            else {
+                renderPost(obj);
+            }
         }
         else {
-            next();
+            var lookup = _.invert(spoofUrls);
+
+            if(lookup[url]) {
+                // This is a spoofed URL, find the real post
+                getPost(dbkey('post', lookup[url]), function(obj) {
+                    if(obj) {
+                        renderPost(obj);
+                    }
+                    else {
+                        next();
+                    }
+                });
+            }
+            else {
+                next();
+            }
         }
     });
 });
@@ -336,7 +473,6 @@ app.post('/delete/:post', requireAdmin, function(req, res) {
     var key = dbkey('post', req.params.post);
 
     client.zrem(dbkey('posts'), key);
-    client.zrem(dbkey('drafts'), key);
 
     getAllTags(function(tags) {
         tags.forEach(function(tag) {
@@ -351,23 +487,44 @@ app.post('/new', requireAdmin, function(req, res) {
     var content = req.body.content;
     var title = req.body.title;
     var published = req.body.published ? 'y' : 'n';
-    var shorturl = req.body.shorturl || title.replace(' ', '-');
+    var shorturl = slugify(req.body.shorturl || title);
     var date = moment(req.body.date, 'YYYYMMDD');
     var dateInt = dateToInt(date);
     var tags = _.map(req.body.tags.split(','),
                      function(tag) {
                          return tag.replace(/^\s*|\s*$/g, '');
                      });
-
     if(!title) {
         title = ('Draft ' + formatDate(moment()));
         published = false;
     }
 
     var key = dbkey('post', shorturl);
+    var oldKey = dbkey('post', req.body.prevShorturl);
 
-    client.hgetall(key, function(err, obj) {
-        client.hmset(key, { shorturl: shorturl,
+    function renameAndFetch(cb) {
+        getPost(oldKey, function(obj) {
+            if(obj && key != oldKey) {
+                renamePost(obj, key, function() {
+                    cb(obj);
+                });
+            }
+            else {
+                cb(obj);
+            }
+        });
+    }
+
+    renameAndFetch(function(obj) {
+        var multi = client.multi();
+
+        if(obj && oldKey == '') {
+            // User is creating a new page with the same name as
+            // another one
+            throw new Error('page with same name already exists');
+        }
+
+        multi.hmset(key, { shorturl: shorturl,
                             content: content,
                             title: title,
                             published: published,
@@ -375,38 +532,37 @@ app.post('/new', requireAdmin, function(req, res) {
 
         // The post already exists and is published
         if(published == 'y' && obj && obj.published == 'y') {
-            var prevTags = obj.tags.split(',');
-            client.hset(key, 'date', dateInt.toString());
+            var prevTags = obj.tags;
+            multi.hset(key, 'date', dateInt.toString());
 
             // Update the sorting
-            client.zadd(dbkey('posts'), dateInt, key);
+            multi.zadd(dbkey('posts'), dateInt, key);
 
             if(obj.content != content) {
-                client.hset(key,
-                            'updatedDate',
-                            dateToInt(moment()).toString());
+                multi.hset(key,
+                           'updatedDate',
+                           dateToInt(moment()).toString());
             }
 
             // Removed from these tags
             _.difference(prevTags, tags).forEach(function(tag) {
-                client.zrem(dbkey('tag', tag), key);
+                multi.zrem(dbkey('tag', tag), key);
             });
 
             // Added these tags
             _.difference(tags, prevTags).forEach(function(tag) {
-                client.zadd(dbkey('tag', tag), obj.date, key);
+                multi.zadd(dbkey('tag', tag), obj.date, key);
             });
         }
 
         // The post either didn't exist or wasn't published, and
         // should be
         else if(published == 'y') {
-            client.hset(key, 'date', dateInt.toString());
-            client.zadd(dbkey('posts'), dateInt, key);
-            client.zrem(dbkey('drafts'), key);
+            multi.hset(key, 'date', dateInt.toString());
+            multi.zadd(dbkey('posts'), dateInt, key);
 
             tags.forEach(function(tag) {
-                client.zadd(dbkey('tag', tag), dateInt, key);
+                multi.zadd(dbkey('tag', tag), dateInt, key);
             });
         }
 
@@ -414,26 +570,25 @@ app.post('/new', requireAdmin, function(req, res) {
         else {
             // If previously published, remove certain fields
             if(obj && obj.published == 'y') {
-                client.hdel(key, 'updatedDate');
-                client.zrem(dbkey('posts'), key);
+                multi.hdel(key, 'updatedDate');
 
-                obj.tags.split(',').forEach(function(tag) {
-                    client.zrem(dbkey('tag', tag), key);
+                obj.tags.forEach(function(tag) {
+                    multi.zrem(dbkey('tag', tag), key);
                 });
             }
 
             var now = dateToInt(moment());
-            client.hset(key, 'date', now.toString());
-            client.zadd(dbkey('drafts'),
-                        now,
-                        key);
+            multi.hset(key, 'date', now.toString());
+            multi.zadd(dbkey('posts'), now, key);
         }
+
+        multi.exec(function() {
+            // Make sure it persists to the disk after everything is saved
+            client.save();
+        });
     });
 
-    // Make sure it persists to the disk
-    client.save();
-
-    res.redirect('/');
+    res.redirect('/' + shorturl);
 });
 
 app.get('/email-changes', function(req, res) {
@@ -459,7 +614,7 @@ app.post('/email-changes', loggedIn, function(req, res) {
             fs.writeFile(file2, content, 'utf-8', emailDiff);
         }
     }
-    
+
     function emailDiff(err) {
         if(!err) {
             var output = '';
@@ -482,7 +637,7 @@ app.post('/email-changes', loggedIn, function(req, res) {
 
                     var text = ('FROM: ' + req.session.user.email + '\n\n' +
                                 'PATCH: \n' + output);
-                    
+
                     server.send({
                         text: text,
                         from: 'nobody@example.com',

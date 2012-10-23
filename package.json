@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "redis": "https://github.com/mranney/node_redis/tarball/master"
+  }
+}

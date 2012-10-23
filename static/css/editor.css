@@ -113,3 +113,24 @@ div.field {
     font-style: italic;
     font-size: .9em;
 }
+
+/* code highlighting (HACK: this is copied from main.less) */
+
+pre code {
+    border-radius: 6px;
+    font-size: 1.15em;
+    overflow: auto;
+    padding: 1em 1.5em;
+    line-height: 1.3em;
+    margin: 0;
+}
+
+/* A few style tweaks to the "solarized dark" theme */
+
+pre code { 
+    color: #93a1a1;
+}
+
+pre code .quoted {
+    color: #586e75;
+}

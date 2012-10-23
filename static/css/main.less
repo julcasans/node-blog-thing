@@ -1,5 +1,6 @@
 
 @import 'grid.less';
+@import 'code.css';
 
 @columns: 8;
 @total-width: 100%;
@@ -245,30 +246,9 @@ article {
     text-align: center;
 }
 
-// post-specific
-
-figure.clipped .gutter,
-figure.clipped .gutter {
-    display: none;
-}
-
-figure.clipped .highlight,
-figure.clipped .highlight {
-    overflow: hidden;
-}
-
-figure.clipped .code pre,
-figure.clipped .code pre {
-    max-height: 400px;
-    overflow: auto;
-}
-
-figure#js-cps .code pre {
-    width: 59%;
-}
-
-figure#js-cps2 .code pre {
-    width: 46.5%;
+.page article img {
+    display: block;
+    margin: 0 auto;
 }
 
 #disqus_thread {
@@ -284,9 +264,20 @@ pre code {
     padding: 1em 1.5em;
     line-height: 1.3em;
     margin: 0;
+}
 
-    pre {
-        padding: 0;
-        margin: 0;
-    }
+// A few style tweaks to the "solarized dark" theme
+
+pre code { 
+    color: #93a1a1;
+}
+
+pre code .quoted {
+    color: #586e75;
+}
+
+// specific posts
+
+#The-Quest-for-Javascript-CPS--Part-2 button {
+    font-size: .8em;
 }

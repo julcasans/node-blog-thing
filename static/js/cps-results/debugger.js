@@ -7,7 +7,7 @@ function clear_expr() {
     $("#expr").html('');
 }
 
-$(function() {
+document.addEventListener('DOMContentLoaded', function() {
     $('#toggle-bp,#continue,#step').attr('disabled', 'true');
 
     var started = false;
