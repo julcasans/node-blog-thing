@@ -14,7 +14,10 @@
   <entry>
     <title type="html">{{ post.title }}</title>
     <link href="{{ base }}/{{ post.shorturl }}" />
-    <updated>{{ post.date | dateToRFC3339 }}</updated>
+    <published>{{ post.date | dateToRFC3339 }}</published>
+    {% if post.updatedDate %}
+      <updated>{{ post.updatedDate | dateToRFC3339 }}</updated>
+    {% endif %}
     <id>{{ base }}/{{ post.shorturl }}</id>
     <summary>{{ post.content | getParagraphs(4) | ghm }}</summary>
     <content type="html">

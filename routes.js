@@ -172,6 +172,15 @@ module.exports = function(app, env) {
         });
     });
 
+    // app.get('/remove', function(req, res) {
+    //     db.client.keys(db.dbkey('post', '*'), function(err, keys) {
+    //         keys.forEach(function(key) {
+    //             res.write(key + '\n');
+    //             db.client.hdel(key, 'updatedDate');
+    //         });
+    //     });
+    // });
+
     app.get('/tag/:tag', function(req, res) {
         db.getAllPostsByTag(req.params.tag, function(err, posts) {
             if(!u.handleError(err)) {
