@@ -1,15 +1,13 @@
 
-module.exports = function(app) {
-    //app.locals.dev = true;
-    //app.enable('trust proxy');
+module.exports = {
+    tmpdir: '/tmp',
+    port: 4000,
 
-    return {
-        tmpdir: '/tmp',
-        port: 4000,
-        
-        emailUser: '',
-        emailPass: '',
-        emailHost: '',
-        emailSsl: true
-    };
+    admins: [],
+    emailUser: '',
+    emailPass: '',
+    emailHost: '',
+    emailSsl: true,
+    emailSubject: '[site] Patch Submitted',
+    errorSubject: '[site] Error'
 };

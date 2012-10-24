@@ -85,13 +85,8 @@ module.exports = function(app, env) {
     app.get('/', function(req, res, next) {
         db.getAllPosts(function(err, posts) {
             if(!u.handleError(err, next)) {
-                db.getAllTags(function(err, tags) {
-                    if(!u.handleError(err, next)) {
-                        res.render('index.html', { posts: posts.slice(0, 5),
-                                                   tags: tags,
-                                                   bodyId: 'home' });
-                    }
-                });
+                res.render('index.html', { posts: posts.slice(0, 5),
+                                           bodyId: 'home' });
             }
         });
     });
@@ -190,6 +185,20 @@ module.exports = function(app, env) {
         res.render('freshman.html');
     });
 
+    app.get('/atom.xml', function(req, res, next) {
+        db.getAllPosts(function(err, posts) {
+            if(!u.handleError(err, next)) {
+                db.client.get(db.dbkey('lastUpdate'), function(err, updated) {
+                    posts = posts.slice(0, 5);
+                    res.render('atom.xml', { posts: posts,
+                                             base: u.rootUrl(req, settings.port),
+                                             author: settings.author || '',
+                                             updated: updated });
+                });
+            }
+        });
+    });
+
     app.post('/delete/:post', requireAdmin, function(req, res) {
         var key = db.dbkey('post', req.params.post);
 
@@ -211,6 +220,8 @@ module.exports = function(app, env) {
         var shorturl = u.slugify(req.body.shorturl || title);
         var date = moment(req.body.date, 'YYYYMMDD');
         var dateInt = u.dateToInt(date);
+        var nowInt = u.dateToInt(moment());
+
         var tags = _.map(req.body.tags.split(','),
                          function(tag) {
                              return tag.replace(/^\s*|\s*$/g, '');
@@ -303,10 +314,11 @@ module.exports = function(app, env) {
                     });
                 }
 
-                var now = u.dateToInt(moment());
-                multi.hset(key, 'date', now.toString());
-                multi.zadd(db.dbkey('posts'), now, key);
+                multi.hset(key, 'date', nowInt.toString());
+                multi.zadd(db.dbkey('posts'), nowInt, key);
             }
+
+            multi.set(db.dbkey('lastUpdate'), nowInt.toString());
 
             multi.exec(function(err) {
                 if(!u.handleError(err, next)) {
@@ -355,7 +367,7 @@ module.exports = function(app, env) {
                 });
 
                 diff.stdout.on('close', function() {
-                    if(output && 
+                    if(output &&
                        settings.admins &&
                        settings.admins.length) {
                         var server = email.server.connect({

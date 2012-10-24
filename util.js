@@ -2,7 +2,7 @@ var moment = require('moment');
 
 // Util
 
-function formatDate(date, format) {
+function forcefulDate(date) {
     if(typeof date == 'number') {
         date = intToDate(date);
     }
@@ -10,7 +10,11 @@ function formatDate(date, format) {
         date = intToDate(parseInt(date));
     }
 
-    return date.format(format || 'MMMM Do YYYY');
+    return date;
+}
+
+function formatDate(date, format) {
+    return forcefulDate(date).format(format || 'MMMM Do YYYY');
 }
 
 function dateToInt(date) {
@@ -19,6 +23,23 @@ function dateToInt(date) {
 
 function intToDate(x) {
     return moment(x.toString(), 'YYYYMMDD');
+}
+
+function dateToRFC3339(date) {
+    // For Atom Feeds
+    // http://tools.ietf.org/html/rfc3339
+    var utc = forcefulDate(date).utc();
+
+    function pad(n) {
+        return n < 10 ? '0' + n : n;
+    }
+
+    return utc.year() + '-'
+        + pad(utc.month() + 1) + '-'
+        + pad(utc.date()) + 'T'
+        + pad(utc.hours()) + ':'
+        + pad(utc.minutes()) + ':'
+        + pad(utc.seconds()) + 'Z';
 }
 
 function previousDates() {
@@ -32,6 +53,17 @@ function previousDates() {
     }
 
     return dates;
+}
+
+function rootUrl(req, port) {
+    // For some reason req doesn't have the port
+    var base = req.protocol + '://' + req.host;
+
+    if(port != 80) {
+        base += ':' + port;
+    }
+
+    return base;
 }
 
 function tmpFile() {
@@ -58,9 +90,11 @@ function handleError(err, next) {
 
 module.exports = {
     formatDate: formatDate,
+    dateToRFC3339: dateToRFC3339,
     dateToInt: dateToInt,
     intToDate: intToDate,
     previousDates: previousDates,
+    rootUrl: rootUrl,
     tmpFile: tmpFile,
     slugify: slugify,
     handleError: handleError

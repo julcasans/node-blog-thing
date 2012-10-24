@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>James Long's Blog | jlongster.com</title>
+  <link href="{{ base }}/atom.xml" rel="self" />
+  <link href="{{ base }}/" />
+  <updated>{{ updated | dateToRFC3339 }}</updated>
+  <id>{{ base }}</id>
+  <author>
+    <name>{{ author }}</name>
+    {% if email %}<email>{{ email }}</email>{% endif %}
+  </author>
+
+  {% for post in posts %}
+  <entry>
+    <title type="html">{{ post.title }}</title>
+    <link href="{{ base }}/{{ post.shorturl }}" />
+    <updated>{{ post.date | dateToRFC3339 }}</updated>
+    <id>{{ base }}/{{ post.shorturl }}</id>
+    <summary>{{ post.content | getParagraphs(4) | ghm }}</summary>
+    <content type="html">
+      <![CDATA[{{ post.content | ghm | expandUrls(base) | escapeCDATA }}]]>
+    </content>
+  </entry>
+  {% endfor %}
+</feed>

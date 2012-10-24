@@ -3,6 +3,19 @@ var ghm = require('./showdown-ghm');
 
 module.exports = function(env) {
     env.addFilter('formatdate', u.formatDate);
+    env.addFilter('dateToRFC3339', u.dateToRFC3339);
+
+    env.addFilter('escapeCDATA', function(str) {
+        return str.replace(/<!\[CDATA\[/, '&lt;![CDATA[')
+            .replace(/\]\]>/, ']]&gt;');
+    });
+
+    env.addFilter('expandUrls', function(str, base) {
+        base = base || '/';
+        
+        return str.replace(/(\s+(href|src)\s*=\s*["'])(\/[^"'>]*)/,
+                           "$1" + base + "$3");
+    });
 
     env.addFilter('getParagraphs', function(str, num) {
         // Don't split in the middle of a code block
