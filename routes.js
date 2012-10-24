@@ -42,7 +42,7 @@ module.exports = function(app, env) {
 
     // Authentication
     require('express-persona')(app, {
-        audience: 'http://localhost:4000',
+        audience: settings.url,
 
         verifyResponse: function(err, req, res, email) {
             if(err) {
@@ -171,15 +171,6 @@ module.exports = function(app, env) {
             }
         });
     });
-
-    // app.get('/remove', function(req, res) {
-    //     db.client.keys(db.dbkey('post', '*'), function(err, keys) {
-    //         keys.forEach(function(key) {
-    //             res.write(key + '\n');
-    //             db.client.hdel(key, 'updatedDate');
-    //         });
-    //     });
-    // });
 
     app.get('/tag/:tag', function(req, res) {
         db.getAllPostsByTag(req.params.tag, function(err, posts) {

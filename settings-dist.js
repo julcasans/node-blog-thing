@@ -2,6 +2,7 @@
 module.exports = {
     tmpdir: '/tmp',
     port: 4000,
+    url: 'http://localhost:4000',
 
     admins: [],
     emailUser: '',
