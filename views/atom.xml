@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>James Long's Blog | jlongster.com</title>
+  <title>James Long</title>
   <link href="{{ base }}/atom.xml" rel="self" />
   <link href="{{ base }}/" />
   <updated>{{ updated | dateToRFC3339 }}</updated>
