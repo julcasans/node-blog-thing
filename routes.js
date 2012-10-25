@@ -237,7 +237,7 @@ module.exports = function(app, env) {
         function renameAndFetch(cb) {
             db.getPost(oldKey, function(err, obj) {
                 if(obj && key != oldKey) {
-                    renamePost(obj, key, function(err) {
+                    db.renamePost(obj, key, function(err) {
                         cb(err, obj);
                     });
                 }
