@@ -10,7 +10,7 @@ $(function() {
     editor.commands.removeCommand('gotoline');
     editor.focus();
 
-    var title = $('input[name=title]').val() || 'Needs title';
+    var title = $('input[name=title]').val();
     var shorturl = $('input[name=shorturl]').val();
 
     function updatePreview() {
@@ -31,7 +31,11 @@ $(function() {
                 str += '<div class="user">Not logged in, unable to save</div>';
             }
 
-            str += '<h1>' + title + '</h1>' + r;
+            if(title) {
+                str += '<h1>' + title + '</h1>';
+            }
+
+            str += r;
             $('#preview .contents').html(str);
         });
     }
