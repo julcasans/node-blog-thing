@@ -135,7 +135,7 @@ a.button {
   margin-top: 0;
 }
 #home .recent {
-  margin-top: 4em;
+  margin-top: 2em;
 }
 #home .recent article {
   margin-bottom: 3em;
@@ -143,6 +143,10 @@ a.button {
 #home .recent .date,
 #home .recent .tags {
   line-height: 1em;
+}
+.game-creeper {
+  text-align: center;
+  margin-top: 2em;
 }
 #archive article {
   margin-bottom: 3em;
