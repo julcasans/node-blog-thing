@@ -16,12 +16,15 @@
   {{ post.rendered }}
 
   <div class="social">
-    {% if post.hnid %}
-    <em>
-      Discuss this on <a href="http://news.ycombinator.com/item?id={{ post.hnid }}">
-        Hacker News</a>
-    </em>
-    {% endif %}
+    <a href="http://news.ycombinator.com/submit" class="hn-share-button">Vote on HN</a>
+    <script>
+      (function(d, t) {
+        var g = d.createElement(t),
+        s = d.getElementsByTagName(t)[0];
+        g.src = '//hnbutton.appspot.com/static/hn.js';
+        s.parentNode.insertBefore(g, s);
+      }(document, 'script'));
+    </script>
 
     <a href="https://twitter.com/share" class="twitter-share-button" data-via="jlongster">Tweet</a>
     <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>

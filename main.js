@@ -76,5 +76,5 @@ app.configure('prod', function() {
 
 // Fire up the server
 
-console.log('Started sterver on ' + settings.port + '...');
+console.log('Started server on ' + settings.port + '...');
 app.listen(settings.port);
