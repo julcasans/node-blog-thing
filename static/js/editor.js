@@ -10,7 +10,6 @@ $(function() {
     editor.commands.removeCommand('gotoline');
     editor.focus();
 
-    var title = $('input[name=title]').val();
     var shorturl = $('input[name=shorturl]').val();
 
     function updatePreview() {
@@ -31,10 +30,6 @@ $(function() {
                 str += '<div class="user">Not logged in, unable to save</div>';
             }
 
-            if(title) {
-                str += '<h1>' + title + '</h1>';
-            }
-
             str += r;
             $('#preview .contents').html(str);
         });
@@ -44,10 +39,27 @@ $(function() {
     setInterval(updatePreview, 2000);
 
     $('.action.save').click(function() {
+        // TODO: use the same function that the server uses
+        function slugify(name) {
+            return name.replace(/[ !@#$%^&*():"'|?=]/g, '-');
+        }
+
         var text = editor.getValue();
         var dialog = $('#save-dialog');
 
         dialog.find('input[name=content]').val(text);
+
+        // TODO: don't copy this from the server, share it
+        var title;
+        var titleMatches = text.replace(/^\s*/, '').match(/^#\s*(.*)/);
+        if(titleMatches) {
+            title = slugify(titleMatches[1]);
+        }
+        else {
+            title = slugify('[Post]');
+        }
+
+        dialog.find('input[name=shorturl]').val(title);
         dialog.show();
     });
 
@@ -82,13 +94,6 @@ $(function() {
         if(confirm('Are you sure you want to leave? '
                    + 'Any changes will be lost')) {
             window.location.href = '/' + shorturl;
-        }
-    });
-
-    $('#save-dialog form').submit(function(e) {
-        if($(this).find('input[name=title]').val() == '') {
-            alert('Title is required');
-            return false;
         }
     });
 

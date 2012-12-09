@@ -7,7 +7,10 @@
   </head>
   <body>
     <div id="app">
-      <div id="editor">{{ post.content | default('') | escape }}</div>
+      <div id="editor">
+{% if post.title %}# {{ post.title | trim }}{% endif %}
+        {{ post.content | default('') | escape }}
+      </div>
       <div id="preview">
         <div class="contents">
         </div>
@@ -33,11 +36,6 @@
         <form action="/save" method="post">
           <input type="hidden" name="content" value="" />
           <input type="hidden" name="prevShorturl" value="{{ post.shorturl | default('') }}" />
-
-          <div class="field">
-            <label>Title:</label>
-            <input type="text" name="title" value="{{ post.title | default('') }}" />
-          </div>
 
           <div class="field">
             <label>Short URL:</label>

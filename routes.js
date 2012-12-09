@@ -15,7 +15,6 @@ var u = require('./util');
 var hljs = require('highlight.js');
 hljs.LANGUAGES['scheme'] = require('./scheme.js')(hljs);
 
-
 // Middleware
 
 function requireAdmin(req, res, next) {
@@ -215,12 +214,26 @@ module.exports = function(app, env) {
 
     app.post('/save', requireAdmin, function(req, res, next) {
         var content = req.body.content;
-        var title = req.body.title;
         var published = req.body.published ? 'y' : 'n';
-        var shorturl = u.slugify(req.body.shorturl || title);
         var date = moment(req.body.date, 'YYYYMMDD');
         var dateInt = u.dateToInt(date);
         var nowInt = u.dateToInt(moment());
+
+        content = content.replace(/^\s*/, '');
+
+        var title;
+        var contentMatches = content.match(/^#\s*(.*)/);
+
+        if(contentMatches)  {
+            title = contentMatches[1];
+            content = content.slice(contentMatches[0].length);
+        }
+        else {
+            title = '[Post]';
+        }
+
+        var shorturl = u.slugify(req.body.shorturl || title);
+
 
         var tags = _.map(req.body.tags.split(','),
                          function(tag) {
